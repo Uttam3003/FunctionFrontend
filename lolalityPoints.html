@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> Earn And Spend Loyalty Points</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.3/dist/web3.min.js"></script>
+</head>
+<body>
+    <h1>Earn And Spend Loyalty Points</h1>
+
+    <div>
+        <label for="points">Loyalty Points:</label>
+        <span id="points"></span>
+    </div>
+
+    <div>
+        <label for="earnPoints">Earn Points:</label>
+        <input type="number" id="earnPoints">
+    </div>
+    <div>
+        <button onclick="earnPoints()">Earn</button>
+    </div>
+
+    <div>
+        <label for="spendPoints">Spend Points:</label>
+        <input type="number" id="spendPoints">
+    </div>
+    <div>
+        <button onclick="spendPoints()">Spend</button>
+    </div>
+
+    <script>
+        // Connect to the Ethereum network using web3.js
+        let web3;
+
+        if (typeof window.ethereum !== 'undefined') {
+            web3 = new Web3(window.ethereum);
+        } else if (typeof window.web3 !== 'undefined') {
+            web3 = new Web3(window.web3.currentProvider);
+        } else {
+            // If no injected web3 instance is detected, fallback to Infura
+            web3 = new Web3(new Web3.providers.HttpProvider('https://goerli.infura.io/v3/ceeddbcfaa8349bea32e9d700784b197'));
+        }
+
+        // Contract address and ABI
+        const contractAddress = '0x5B38Da6a701c568545dCfcB03FcB875f56beddC4'; // Replace with the actual contract address
+        const contractABI = [
+        [
+	{
+		"inputs": [],
+		"name": "createUserAccount",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "points",
+				"type": "uint256"
+			}
+		],
+		"name": "earnPoints",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "points",
+				"type": "uint256"
+			}
+		],
+		"name": "spendPoints",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_key",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "getPoints",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+            // Contract ABI...
+        ];
+        const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
+
+        // Display the user's loyalty points
+        function displayPoints() {
+            web3.eth.getAccounts().then(function(accounts) {
+                const userAddress = accounts[0];
+                contractInstance.methods.getPoints().call({ from: userAddress })
+                    .then(function(result) {
+                        document.getElementById('points').textContent = result;
+                    })
+                    .catch(function(error) {
+                        console.error(error);
+                    });
+            });
+        }
+
+        // Earn loyalty points
+        function earnPoints() {
+            web3.eth.getAccounts().then(function(accounts) {
+                const userAddress = accounts[0];
+                const pointsToEarn = document.getElementById('earnPoints').value;
+                contractInstance.methods.earnPoints(pointsToEarn).send({ from: userAddress })
+                    .then(function() {
+                        displayPoints();
+                    })
+                    .catch(function(error) {
+                        console.error(error);
+                    });
+            });
+        }
+
+        // Spend loyalty points
+        function spendPoints() {
+            web3.eth.getAccounts().then(function(accounts) {
+                const userAddress = accounts[0];
+                const pointsToSpend = document.getElementById('spendPoints').value;
+                contractInstance.methods.spendPoints(pointsToSpend).send({ from: userAddress })
+                    .then(function() {
+                        displayPoints();
+                    })
+                    .catch(function(error) {
+                        console.error(error);
+                    });
+            });
+        }
+
+        // Initial display of the user's loyalty points
+        displayPoints();
+    </script>
+</body>
+</html>
